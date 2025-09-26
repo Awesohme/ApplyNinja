@@ -24,30 +24,13 @@ export default async function handler(req, res) {
             });
         }
 
-        // Create optimized prompt for Zephyr
-        const prompt = `<|system|>
-You are an expert resume optimizer. Your task is to analyze a job description and rewrite key resume bullet points to better match the job requirements while maintaining the candidate's authentic communication style.
-</s>
-<|user|>
-**Job Description:**
-${jobDescription.substring(0, 2000)}
+        // Create simple prompt for GPT-2
+        const prompt = `Job Description: ${jobDescription.substring(0, 500)}
 
-**Master Resume:**
-${masterResume.substring(0, 3000)}
+Resume to optimize: ${masterResume.substring(0, 1000)}
 
-**Communication Style Reference:**
-${communicationStyle.substring(0, 1000)}
-
-**Instructions:**
-1. Extract 4-6 most relevant experiences from the master resume
-2. Rewrite them to highlight skills/keywords mentioned in the job description
-3. Maintain the candidate's communication style and tone
-4. Focus on quantifiable achievements when possible
-5. Each bullet point should start with a strong action verb
-
-**Output only the optimized bullet points, one per line, starting with "•":**
-</s>
-<|assistant|>`;
+Optimized resume bullet points:
+• `;
 
         // Validate environment variable
         if (!process.env.HUGGINGFACE_TOKEN) {
@@ -60,7 +43,7 @@ ${communicationStyle.substring(0, 1000)}
 
         // Call Hugging Face API
         const hfResponse = await fetch(
-            "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
+            "https://api-inference.huggingface.co/models/gpt2",
             {
                 headers: {
                     Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
@@ -70,9 +53,8 @@ ${communicationStyle.substring(0, 1000)}
                 body: JSON.stringify({
                     inputs: prompt,
                     parameters: {
-                        max_new_tokens: 600,
+                        max_length: 200,
                         temperature: 0.7,
-                        top_p: 0.9,
                         do_sample: true,
                         return_full_text: false
                     },
