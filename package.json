@@ -5,7 +5,6 @@
   "main": "api/optimize-resume.js",
   "scripts": {
     "dev": "vercel dev",
-    "build": "vercel build",
     "deploy": "vercel --prod"
   },
   "dependencies": {},
