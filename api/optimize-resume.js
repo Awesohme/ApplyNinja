@@ -51,6 +51,15 @@ ${communicationStyle.substring(0, 1000)}
 
 <|eot_id|><|start_header_id|>assistant<|end_header_id|>`;
 
+        // Validate environment variable
+        if (!process.env.HUGGINGFACE_TOKEN) {
+            console.error('HUGGINGFACE_TOKEN not found in environment variables');
+            return res.status(500).json({
+                error: 'Server configuration error. Please contact support.',
+                details: 'Missing API configuration'
+            });
+        }
+
         // Call Hugging Face API
         const hfResponse = await fetch(
             "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
