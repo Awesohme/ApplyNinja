@@ -24,13 +24,11 @@ export default async function handler(req, res) {
             });
         }
 
-        // Create optimized prompt for Llama
-        const prompt = `<|begin_of_text|><|start_header_id|>system<|end_header_id|>
-
+        // Create optimized prompt for Zephyr
+        const prompt = `<|system|>
 You are an expert resume optimizer. Your task is to analyze a job description and rewrite key resume bullet points to better match the job requirements while maintaining the candidate's authentic communication style.
-
-<|eot_id|><|start_header_id|>user<|end_header_id|>
-
+</s>
+<|user|>
 **Job Description:**
 ${jobDescription.substring(0, 2000)}
 
@@ -48,8 +46,8 @@ ${communicationStyle.substring(0, 1000)}
 5. Each bullet point should start with a strong action verb
 
 **Output only the optimized bullet points, one per line, starting with "•":**
-
-<|eot_id|><|start_header_id|>assistant<|end_header_id|>`;
+</s>
+<|assistant|>`;
 
         // Validate environment variable
         if (!process.env.HUGGINGFACE_TOKEN) {
@@ -62,7 +60,7 @@ ${communicationStyle.substring(0, 1000)}
 
         // Call Hugging Face API
         const hfResponse = await fetch(
-            "https://api-inference.huggingface.co/models/meta-llama/Meta-Llama-3.1-8B-Instruct",
+            "https://api-inference.huggingface.co/models/HuggingFaceH4/zephyr-7b-beta",
             {
                 headers: {
                     Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
