@@ -9,7 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const pageStatus = document.getElementById('page-status');
 
     // Configuration - Vercel deployment URL
-    const API_ENDPOINT = 'https://apply-ninja-4xg1kvq2a-olamides-projects-8e41d71c.vercel.app/api/optimize-resume';
+    const API_ENDPOINT = 'https://apply-ninja-5lliksz0q-olamides-projects-8e41d71c.vercel.app/api/optimize-resume';
 
     // Initialize popup
     init();
