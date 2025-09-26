@@ -145,19 +145,33 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function extractJobDescription(tabId) {
-        return new Promise((resolve, reject) => {
-            chrome.tabs.sendMessage(tabId, { action: 'extractJobDescription' }, (response) => {
-                if (chrome.runtime.lastError) {
-                    reject(new Error('Could not communicate with the page. Please refresh and try again.'));
-                    return;
-                }
+        return new Promise(async (resolve, reject) => {
+            try {
+                // First, ensure content script is injected
+                await chrome.scripting.executeScript({
+                    target: { tabId: tabId },
+                    files: ['content.js']
+                });
 
-                if (response && response.success) {
-                    resolve(response.jobDescription);
-                } else {
-                    reject(new Error(response?.error || 'Could not extract job description from this page.'));
-                }
-            });
+                // Give it a moment to initialize
+                setTimeout(() => {
+                    chrome.tabs.sendMessage(tabId, { action: 'extractJobDescription' }, (response) => {
+                        if (chrome.runtime.lastError) {
+                            reject(new Error('Could not communicate with the page. Please refresh and try again.'));
+                            return;
+                        }
+
+                        if (response && response.success) {
+                            resolve(response.jobDescription);
+                        } else {
+                            reject(new Error(response?.error || 'Could not extract job description from this page.'));
+                        }
+                    });
+                }, 500);
+
+            } catch (error) {
+                reject(new Error('Failed to inject content script. Please refresh the page and try again.'));
+            }
         });
     }
 

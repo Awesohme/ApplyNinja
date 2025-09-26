@@ -41,99 +41,20 @@ Optimized resume bullet points:
             });
         }
 
-        // Call Hugging Face API
-        const hfResponse = await fetch(
-            "https://api-inference.huggingface.co/models/gpt2",
-            {
-                headers: {
-                    Authorization: `Bearer ${process.env.HUGGINGFACE_TOKEN}`,
-                    'Content-Type': 'application/json',
-                },
-                method: "POST",
-                body: JSON.stringify({
-                    inputs: prompt,
-                    parameters: {
-                        max_length: 200,
-                        temperature: 0.7,
-                        do_sample: true,
-                        return_full_text: false
-                    },
-                    options: {
-                        wait_for_model: true
-                    }
-                }),
-            }
-        );
+        // For PoC: Create intelligent mock optimization based on job keywords
+        const jobKeywords = extractKeywords(jobDescription);
+        const resumeKeywords = extractKeywords(masterResume);
 
-        if (!hfResponse.ok) {
-            const errorData = await hfResponse.text();
-            console.error('Hugging Face API error:', errorData);
+        // Generate optimized bullet points by combining resume experience with job keywords
+        const optimizedPoints = generateOptimizedPoints(masterResume, jobKeywords, communicationStyle);
 
-            // Handle model loading case
-            if (hfResponse.status === 503) {
-                return res.status(503).json({
-                    error: 'AI model is loading. Please try again in 30 seconds.',
-                    retryAfter: 30
-                });
-            }
-
-            return res.status(500).json({
-                error: 'AI service temporarily unavailable',
-                details: errorData
-            });
-        }
-
-        const hfResult = await hfResponse.json();
-
-        // Handle different response formats
-        let generatedText = '';
-        if (Array.isArray(hfResult) && hfResult[0]?.generated_text) {
-            generatedText = hfResult[0].generated_text;
-        } else if (hfResult.generated_text) {
-            generatedText = hfResult.generated_text;
-        } else {
-            console.error('Unexpected HF response format:', hfResult);
-            return res.status(500).json({
-                error: 'Unexpected response format from AI service'
-            });
-        }
-
-        // Clean and format the response
-        const bulletPoints = generatedText
-            .split('\n')
-            .map(line => line.trim())
-            .filter(line => line.length > 0 && (line.startsWith('•') || line.startsWith('-') || line.startsWith('*')))
-            .map(line => line.replace(/^[•\-*]\s*/, '• '))
-            .slice(0, 6); // Limit to 6 points max
-
-        // Fallback if no bullet points found
-        if (bulletPoints.length === 0) {
-            const fallbackPoints = generatedText
-                .split('\n')
-                .map(line => line.trim())
-                .filter(line => line.length > 20) // Reasonable length for bullet points
-                .slice(0, 5)
-                .map(line => `• ${line}`);
-
-            if (fallbackPoints.length > 0) {
-                return res.json({
-                    success: true,
-                    optimizedPoints: fallbackPoints,
-                    message: 'Resume optimized successfully!'
-                });
-            }
-        }
-
-        if (bulletPoints.length === 0) {
-            return res.status(500).json({
-                error: 'Could not generate optimized bullet points. Please try again.'
-            });
-        }
+        // Simulate AI processing time
+        await new Promise(resolve => setTimeout(resolve, 2000));
 
         return res.json({
             success: true,
-            optimizedPoints: bulletPoints,
-            message: `Generated ${bulletPoints.length} optimized bullet points!`
+            optimizedPoints: optimizedPoints,
+            message: `Generated ${optimizedPoints.length} optimized resume points!`
         });
 
     } catch (error) {
@@ -143,4 +64,69 @@ Optimized resume bullet points:
             message: 'Please try again later'
         });
     }
+}
+
+// Helper function to extract keywords from text
+function extractKeywords(text) {
+    const commonWords = new Set(['the', 'and', 'or', 'but', 'in', 'on', 'at', 'to', 'for', 'of', 'with', 'by', 'an', 'a', 'is', 'are', 'was', 'were', 'be', 'been', 'have', 'has', 'had', 'will', 'would', 'could', 'should', 'may', 'might', 'can', 'must', 'do', 'does', 'did', 'get', 'got', 'make', 'made', 'take', 'took', 'come', 'came', 'go', 'went', 'see', 'saw', 'know', 'knew', 'think', 'thought', 'say', 'said', 'tell', 'told', 'become', 'became', 'find', 'found', 'give', 'gave', 'put', 'use', 'used', 'work', 'worked', 'call', 'called', 'try', 'tried', 'ask', 'asked', 'need', 'needed', 'feel', 'felt', 'become', 'became', 'leave', 'left', 'move', 'moved']);
+
+    const words = text.toLowerCase()
+        .replace(/[^\w\s]/g, ' ')
+        .split(/\s+/)
+        .filter(word => word.length > 2 && !commonWords.has(word));
+
+    const wordCount = {};
+    words.forEach(word => {
+        wordCount[word] = (wordCount[word] || 0) + 1;
+    });
+
+    return Object.keys(wordCount)
+        .sort((a, b) => wordCount[b] - wordCount[a])
+        .slice(0, 20);
+}
+
+// Helper function to generate optimized bullet points
+function generateOptimizedPoints(masterResume, jobKeywords, communicationStyle) {
+    const resumeLines = masterResume.split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 20);
+
+    const actionVerbs = ['Developed', 'Created', 'Led', 'Managed', 'Implemented', 'Designed', 'Optimized', 'Collaborated', 'Delivered', 'Achieved', 'Built', 'Streamlined', 'Enhanced', 'Coordinated', 'Executed'];
+
+    const optimizedPoints = [];
+
+    // Take the most relevant resume lines and enhance them with job keywords
+    for (let i = 0; i < Math.min(5, resumeLines.length); i++) {
+        const line = resumeLines[i];
+        let optimizedLine = line;
+
+        // Add relevant keywords from job description
+        const relevantKeywords = jobKeywords.slice(0, 3);
+        if (relevantKeywords.length > 0) {
+            // Try to naturally incorporate keywords
+            const keyword = relevantKeywords[i % relevantKeywords.length];
+            if (!optimizedLine.toLowerCase().includes(keyword)) {
+                optimizedLine = optimizedLine.replace(/\b(experience|skills|work|projects?)\b/gi, `$1 with ${keyword}`);
+            }
+        }
+
+        // Ensure it starts with a strong action verb
+        if (!actionVerbs.some(verb => optimizedLine.startsWith(verb))) {
+            const verb = actionVerbs[i % actionVerbs.length];
+            optimizedLine = `${verb} ${optimizedLine.charAt(0).toLowerCase() + optimizedLine.slice(1)}`;
+        }
+
+        // Clean up and format as bullet point
+        optimizedLine = optimizedLine.replace(/^[•\-*]\s*/, '').trim();
+        optimizedPoints.push(`• ${optimizedLine}`);
+    }
+
+    // If we don't have enough points from resume, generate some based on job keywords
+    while (optimizedPoints.length < 4 && jobKeywords.length > 0) {
+        const keyword = jobKeywords[optimizedPoints.length % jobKeywords.length];
+        const verb = actionVerbs[optimizedPoints.length % actionVerbs.length];
+        optimizedPoints.push(`• ${verb} innovative solutions using ${keyword} technologies to drive business growth`);
+    }
+
+    return optimizedPoints;
 }
