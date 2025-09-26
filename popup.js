@@ -8,8 +8,8 @@ document.addEventListener('DOMContentLoaded', function() {
     const styleStatus = document.getElementById('style-status');
     const pageStatus = document.getElementById('page-status');
 
-    // Configuration - you'll need to update this with your deployed Vercel URL
-    const API_ENDPOINT = 'http://localhost:3000/api/optimize-resume'; // Update after Vercel deployment
+    // Configuration - Vercel deployment URL
+    const API_ENDPOINT = 'https://apply-ninja-b3jq5thwx-olamides-projects-8e41d71c.vercel.app/api/optimize-resume';
 
     // Initialize popup
     init();

@@ -40,3 +40,4 @@ logs/
 # API keys (extra security)
 **/api-keys.js
 **/secrets.js
+.vercel
